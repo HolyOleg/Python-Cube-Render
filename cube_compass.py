@@ -74,20 +74,15 @@ def draw_line(point1, point2):
         y = y1 + d * math.cos(angle)
         drawen_part = d / length
         z = z1 + (z2 - z1) * drawen_part
-        set_pixel(x, y, z)
-
-
-def set_pixel(x, y, z):
-    brightness = max(0.0, min(1.0, (z + 200) / 300))
-    if fun:
-        r = int(rainbow[0] * brightness)
-        g = int(rainbow[1] * brightness)
-        b = int(rainbow[2] * brightness)
-        pixel_set.add(((int(x), int(y)), (r, g, b)))
-    else:
-        c = int(255 * brightness)
-        pixel_set.add(((int(x), int(y)), (c, c, c)))
-
+        brightness = max(0.0, min(1.0, (z + 200) / 300))
+        if fun:
+            r = int(rainbow[0] * brightness)
+            g = int(rainbow[1] * brightness)
+            b = int(rainbow[2] * brightness)
+            pixel_set.add(((int(x), int(y)), (r, g, b)))
+        else:
+            c = int(255 * brightness)
+            pixel_set.add(((int(x), int(y)), (c, c, c)))
 
 print("It follows your every movement... But you still can OLEG for fun!")
 
