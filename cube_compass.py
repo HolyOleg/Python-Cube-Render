@@ -8,7 +8,7 @@ import pygetwindow
 TICKRATE = 60
 WINDOW_SIDE_SIZE = 1000  # WINDOW IS SQUARED
 COLOR_SPEED = 2
-MOVING_SPEED = 1
+MOVING_SPEED = 5
 WINDOW_TITLE = "Cube"
 
 
@@ -131,8 +131,8 @@ while True:
     mouse_coordinates = (mouse_x, mouse_y, 100)
     window = pygetwindow.getWindowsWithTitle(WINDOW_TITLE)[0]
     window_center_x, window_center_y = window.center
-    angle_y = math.atan2(window_center_x - mouse_x, dx) * (-1)
-    angle_x = math.atan2(window_center_y - mouse_y, dy) * (-1)
+    angle_y = math.atan2(window_center_x - mouse_x - WINDOW_SIDE_SIZE // 2 + dx, dx) * (-1)
+    angle_x = math.atan2(window_center_y - mouse_y - WINDOW_SIDE_SIZE // 2 + dy, dy) * (-1)
 
     # ROTATING
     for index, _ in enumerate(cube_coordinates):
