@@ -4,7 +4,7 @@ import pygame
 import pyautogui
 import pygetwindow
 
-# VARIABLES YOU CAN CHANGE
+# CONSTANTS YOU CAN CHANGE
 TICKRATE = 60
 WINDOW_SIDE_SIZE = 1000  # WINDOW IS SQUARED
 ROTATION_SPEED = 1
@@ -12,14 +12,12 @@ COLOR_SPEED = 2
 MOVING_SPEED = 1
 WINDOW_TITLE = "Cube"
 
-# CONSTANTS
+
+# INITIALIZATION PART
 dx = WINDOW_SIDE_SIZE // 2
 dy = WINDOW_SIDE_SIZE // 2
 radian = math.radians(ROTATION_SPEED)
-
-
-# INITIALIZATION PART
-cords_cube = []
+cube_coordinates = []
 rainbow_red = 0
 rainbow_green = 0
 rainbow_blue = 0
@@ -31,16 +29,16 @@ screen = pygame.display.set_mode((WINDOW_SIDE_SIZE, WINDOW_SIDE_SIZE))
 pygame.display.set_caption(WINDOW_TITLE)
 
 # CREATING ALL DOTS FOR THE CUBE
-for x_cube in 1, 0:
-    for y_cube in 1, 0:
-        for z_cube in 1, 0:
-            cords_cube.append(
-                (-100 + x_cube * 200, -100 + y_cube * 200, -100 + z_cube * 200)
+for cube_x in 1, 0:
+    for cube_y in 1, 0:
+        for cube_z in 1, 0:
+            cube_coordinates.append(
+                (-100 + cube_x * 200, -100 + cube_y * 200, -100 + cube_z * 200)
             )
 
 
-def x_matrix_transformation(cords, angle):
-    x, y, z = cords[0], cords[1], cords[2]
+def x_matrix_transformation(point, angle):
+    x, y, z = point[0], point[1], point[2]
     return (
         x,
         z * math.sin(angle) + y * math.cos(angle),
@@ -48,8 +46,8 @@ def x_matrix_transformation(cords, angle):
     )
 
 
-def y_matrix_transformation(cords, angle):
-    x, y, z = cords[0], cords[1], cords[2]
+def y_matrix_transformation(point, angle):
+    x, y, z = point[0], point[1], point[2]
     return (
         x * math.cos(angle) + z * math.sin(angle),
         y,
@@ -57,8 +55,8 @@ def y_matrix_transformation(cords, angle):
     )
 
 
-def z_matrix_transformation(cords, angle):
-    x, y, z = cords[0], cords[1], cords[2]
+def z_matrix_transformation(point, angle):
+    x, y, z = point[0], point[1], point[2]
     return (
         x * math.cos(angle) + y * math.sin(angle),
         x * (-1) * math.sin(angle) + y * math.cos(angle),
@@ -76,8 +74,8 @@ def draw_line(point1, point2):
     for d in range(1, length + 1):
         x = x1 + d * math.sin(angle)
         y = y1 + d * math.cos(angle)
-        t = d / length
-        z = z1 + (z2 - z1) * t
+        drawen_part = d / length
+        z = z1 + (z2 - z1) * drawen_part
         set_pixel(x, y, z)
 
 
@@ -97,7 +95,7 @@ print("It follows your every movement... But you still can OLEG for fun!")
 
 clock = pygame.time.Clock()
 
-base_coordinates = cords_cube.copy()
+base_coordinates = cube_coordinates.copy()
 
 # MAIN PART
 while True:
@@ -139,11 +137,11 @@ while True:
     angle_x = math.atan2(window_center_y - mouse_y, dy) * (-1)
 
     # ROTATING
-    for index, _ in enumerate(cords_cube):
+    for index, _ in enumerate(cube_coordinates):
         point = base_coordinates[index]
         point = x_matrix_transformation(point, angle_x)
         point = y_matrix_transformation(point, angle_y)
-        cords_cube[index] = point
+        cube_coordinates[index] = point
 
     # FUN COLOR
     rainbow = (
@@ -157,7 +155,7 @@ while True:
 
     # DRAWING
     points = []
-    for cube_point_coordinate in cords_cube:
+    for cube_point_coordinate in cube_coordinates:
         points.append(
             (
                 cube_point_coordinate[0] + dx,
