@@ -111,6 +111,7 @@ while True:
                 if keys[pygame.K_g]:
                     fun=True
 
+    #CALCULATING ROTATION ANGLE
     mouse_x, mouse_y = pyautogui.position()
     mouse_coordinates=(mouse_x,mouse_y,100)
     window = pygetwindow.getWindowsWithTitle(window_title)[0]
@@ -118,7 +119,7 @@ while True:
     angle_y=math.atan2(window_center_x-mouse_x,dx)*(-1)
     angle_x=math.atan2(window_center_y-mouse_y,dy)*(-1)
     
-    ##ROTATING
+    #ROTATING
     for point_index in range(len(coordinates)):
         point=base_coordinates[point_index]
         point=x_matrix_transformation(point,angle_x)
@@ -135,11 +136,11 @@ while True:
     rainbow_blue=(rainbow_blue+color_speed)%(math.pi*255)
 
     #DRAWING
-    dots=[]
-    for i in range(len(coordinates)):
-        dots.append((coordinates[i][0]+dx, coordinates[i][1]+dy, coordinates[i][2]))
-    for a,b in ((0,1),(0,2),(0,4),(1,3),(1,5),(2,3),(2,6),(3,7),(4,6),(4,5),(5,7),(6,7)):
-        draw_line(dots[a], dots[b])
+    points=[]
+    for index in range(len(coordinates)):
+        points.append((coordinates[index][0]+dx, coordinates[index][1]+dy, coordinates[index][2]))
+    for a,b in ((0,1),(0,2),(0,4),(1,3),(1,5),(2,3),(2,6),(3,7),(4,6),(4,5),(5,7),(6,7),(0,6),(2,4)):
+        draw_line(points[a], points[b])
 
     sorted_data = sorted(pixel_set, key=lambda item: item[1])
 
