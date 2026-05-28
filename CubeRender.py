@@ -3,32 +3,27 @@ import math
 import pygame
 
 #VARIABLES YOU CAN CHANGE
-##CHANGES  TICKRATE
 tickrate=200
-##CHANGES  SIZE OF A WINDOW
-side=1000
-##CHANGES ROTATION SPEED
-degree=1
-##CHANGES COLOR CHANGING SPEED IN FUN MODE
+window_side_size=1000 #WINDOW IS SQUARED
+rotation_speed=1
 color_speed=2
-##CHANGES MOVING SPEED
-delta=1
+moving_speed=1
 
 #CONSTANTS
-dx=side//2
-dy=side//2
-radian=math.radians(degree)
+dx=window_side_size//2
+dy=window_side_size//2
+radian=math.radians(rotation_speed)
 
 #INITIALIZATION PART
 coordinates=[]
-color1=0
-color2=0
-color3=0
+rainbow_red=0
+rainbow_green=0
+rainbow_blue=0
 fun=False
 pixel_set=set()
 
 pygame.init()
-screen = pygame.display.set_mode((side, side))
+screen = pygame.display.set_mode((window_side_size, window_side_size))
 pygame.display.set_caption("Cube")
 window_title = 'Cube'
 
@@ -38,8 +33,7 @@ for x in 1,0:
         for z in 1,0:
             coordinates.append((-100+x*200,-100+y*200,-100+z*200))
 
-#FUNCTION FOR DRAWING LINES
-def line(point1,point2):
+def draw_line(point1,point2):
     x1,y1,z1=point1
     x2,y2,z2=point2
     angle=math.atan2(x2-x1,y2-y1)
@@ -81,13 +75,13 @@ while True:
 
     ##MOVING
     if keys[pygame.K_LEFT]:
-        dx-=delta
+        dx-=moving_speed
     if keys[pygame.K_UP]:
-        dy-=delta
+        dy-=moving_speed
     if keys[pygame.K_DOWN]:
-        dy+=delta
+        dy+=moving_speed
     if keys[pygame.K_RIGHT]:
-        dx+=delta
+        dx+=moving_speed
 
     ##FUN ACTIVATION
     if keys[pygame.K_o]:
@@ -98,54 +92,56 @@ while True:
     
     ##ROTATING
     for dot_index in range(len(coordinates)):
-        dot=coordinates[dot_index]
+        point=coordinates[dot_index]
         ###Z-AXIS
         if keys[pygame.K_d]:
-            dot=(dot[0]*math.cos(radian)-dot[1]*math.sin(radian),
-                 dot[0]*math.sin(radian)+dot[1]*math.cos(radian),
-                 dot[2])
+            point=(point[0]*math.cos(radian)-point[1]*math.sin(radian),
+                 point[0]*math.sin(radian)+point[1]*math.cos(radian),
+                 point[2])
         if keys[pygame.K_a]:
-            dot=(dot[0]*math.cos(radian)+dot[1]*math.sin(radian),
-                 dot[0]*math.sin(radian)*(-1)+dot[1]*math.cos(radian),
-                 dot[2])
+            point=(point[0]*math.cos(radian)+point[1]*math.sin(radian),
+                 point[0]*math.sin(radian)*(-1)+point[1]*math.cos(radian),
+                 point[2])
         ###X-AXIS
         if keys[pygame.K_s]:
-            dot=(dot[0],
-                 dot[1]*math.cos(radian)+dot[2]*math.sin(radian),
-                 dot[1]*math.sin(radian)*(-1)+dot[2]*math.cos(radian))
+            point=(point[0],
+                 point[1]*math.cos(radian)+point[2]*math.sin(radian),
+                 point[1]*math.sin(radian)*(-1)+point[2]*math.cos(radian))
         if keys[pygame.K_w]:
-            dot=(dot[0],
-                 dot[1]*math.cos(radian)-dot[2]*math.sin(radian),
-                 dot[1]*math.sin(radian)+dot[2]*math.cos(radian))
+            point=(point[0],
+                 point[1]*math.cos(radian)-point[2]*math.sin(radian),
+                 point[1]*math.sin(radian)+point[2]*math.cos(radian))
         ###Z-AXIS
         if keys[pygame.K_q]:
-            dot=(dot[0]*math.cos(radian)-dot[2]*math.sin(radian),
-                dot[1],
-                dot[0]*math.sin(radian)+dot[2]*math.cos(radian))
+            point=(point[0]*math.cos(radian)-point[2]*math.sin(radian),
+                point[1],
+                point[0]*math.sin(radian)+point[2]*math.cos(radian))
         if keys[pygame.K_e]:
-            dot=(dot[0]*math.cos(radian)+dot[2]*math.sin(radian),
-                dot[1],
-                dot[0]*math.sin(radian)*(-1)+dot[2]*math.cos(radian))
-        coordinates[dot_index]=dot
+            point=(point[0]*math.cos(radian)+point[2]*math.sin(radian),
+                point[1],
+                point[0]*math.sin(radian)*(-1)+point[2]*math.cos(radian))
+        coordinates[dot_index]=point
 
     #FUN COLOR
-    RAINBOW= (int(127.5*math.sin(color1/127.5)+127.5),int(127.5*math.sin(color2/127.5-42.5)+127.5),int(127.5*math.sin(color3/127.5+42.5)+127.5))
-    color1=(color1+color_speed)%(math.pi*255)
-    color2=(color2+color_speed)%(math.pi*255)
-    color3=(color3+color_speed)%(math.pi*255)
+    RAINBOW= (
+        int(127.5*math.sin(rainbow_red/127.5)+127.5),
+        int(127.5*math.sin(rainbow_green/127.5-42.5)+127.5),
+        int(127.5*math.sin(rainbow_blue/127.5+42.5)+127.5))
+    rainbow_red=(rainbow_red+color_speed)%(math.pi*255)
+    rainbow_green=(rainbow_green+color_speed)%(math.pi*255)
+    rainbow_blue=(rainbow_blue+color_speed)%(math.pi*255)
 
     #DRAWING
     dots=[]
     for i in range(len(coordinates)):
         dots.append((coordinates[i][0]+dx, coordinates[i][1]+dy, coordinates[i][2]))
     for a,b in ((0,1),(0,2),(0,4),(1,3),(1,5),(2,3),(2,6),(3,7),(4,6),(4,5),(5,7),(6,7)):
-        line(dots[a], dots[b])
+        draw_line(dots[a], dots[b])
 
     sorted_data = sorted(pixel_set, key=lambda item: item[1])
 
-    for pixel in sorted_data:
-        screen.set_at(pixel[0],pixel[1])
+    for point in sorted_data:
+        screen.set_at(point[0],point[1])
     pixel_set.clear()
-
 
     clock.tick(tickrate)
