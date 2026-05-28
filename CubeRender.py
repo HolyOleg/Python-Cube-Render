@@ -1,20 +1,30 @@
+#
 import sys
 import math
 import pygame
 
-message='Rotate on WASD. Move on ARROWS. OLEG for fun'
+#VARIABLES YOU CAN CHANGE
+#CHANGES  TICKRATE
 tickrate=200
+#CHANGES  SIZE OF A WINDOW
 side=1000
-coordinates=[]
+#CHANGES ROTATION SPEED
 degree=1
-radian=math.radians(degree)
+#CHANGES COLOR CHANGING SPEED IN FUN MODE
 color_speed=2
+#CHANGES MOVING SPEED
+delta=1
+
+#CONSTANTS
+dx=side//2
+dy=side//2
+radian=math.radians(degree)
+
+#INITIALIZATION PART
+coordinates=[]
 color1=0
 color2=0
 color3=0
-delta=1
-dx=side//2
-dy=side//2
 fun=False
 pixel_set=set()
 
@@ -23,23 +33,16 @@ screen = pygame.display.set_mode((side, side))
 pygame.display.set_caption("Cube")
 window_title = 'Cube'
 
+#CREATING ALL DOTS FOR THE CUBE
 for x in 1,0:
     for y in 1,0:
         for z in 1,0:
             coordinates.append((-100+x*200,-100+y*200,-100+z*200))
 
-WHITE = (255, 255, 255)
-BLACK = (0,0,0)
-
-
-
+#FUNCTION FOR DRAWING LINES
 def line(point1,point2):
-    x1=point1[0]
-    y1=point1[1]
-    z1=point1[2]
-    x2=point2[0]
-    y2=point2[1]
-    z2=point2[2]
+    x1,y1,z1=point1
+    x2,y2,z2=point2
     angle=math.atan2(x2-x1,y2-y1)
     length=int(math.sqrt((x2-x1)**2+(y2-y1)**2))
     if length==0:
@@ -59,21 +62,25 @@ def line(point1,point2):
             c = int(255 * brightness)
             pixel_set.add(((x, y), (c, c, c)))
 
-print(message)
+print('Rotate on WASD. Move on ARROWS. OLEG for fun')
 
 clock = pygame.time.Clock()
 
+#MAIN PART
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-    pygame.display.flip()
-    screen.fill(BLACK)
     
+    #UPDATING SCRIPT
+    pygame.display.flip()
+    screen.fill((0,0,0))
+    
+    #KEY DETECTING PART
     keys = pygame.key.get_pressed()
 
-    #MOVING
+    ##MOVING
     if keys[pygame.K_LEFT]:
         dx-=delta
     if keys[pygame.K_UP]:
@@ -83,17 +90,17 @@ while True:
     if keys[pygame.K_RIGHT]:
         dx+=delta
 
-    #FUN ACTIVATION
+    ##FUN ACTIVATION
     if keys[pygame.K_o]:
         if keys[pygame.K_l]:
             if keys[pygame.K_e]:
                 if keys[pygame.K_g]:
                     fun=True
     
-    #ROTATING
+    ##ROTATING
     for dot_index in range(len(coordinates)):
         dot=coordinates[dot_index]
-        #Z-AXIS
+        ###Z-AXIS
         if keys[pygame.K_d]:
             dot=(dot[0]*math.cos(radian)-dot[1]*math.sin(radian),
                  dot[0]*math.sin(radian)+dot[1]*math.cos(radian),
@@ -102,7 +109,7 @@ while True:
             dot=(dot[0]*math.cos(radian)+dot[1]*math.sin(radian),
                  dot[0]*math.sin(radian)*(-1)+dot[1]*math.cos(radian),
                  dot[2])
-        #X-AXIS
+        ###X-AXIS
         if keys[pygame.K_s]:
             dot=(dot[0],
                  dot[1]*math.cos(radian)+dot[2]*math.sin(radian),
@@ -111,7 +118,7 @@ while True:
             dot=(dot[0],
                  dot[1]*math.cos(radian)-dot[2]*math.sin(radian),
                  dot[1]*math.sin(radian)+dot[2]*math.cos(radian))
-        #Z-AXIS
+        ###Z-AXIS
         if keys[pygame.K_q]:
             dot=(dot[0]*math.cos(radian)-dot[2]*math.sin(radian),
                 dot[1],
