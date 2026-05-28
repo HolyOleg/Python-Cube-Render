@@ -7,7 +7,6 @@ import pygetwindow
 # CONSTANTS YOU CAN CHANGE
 TICKRATE = 60
 WINDOW_SIDE_SIZE = 1000  # WINDOW IS SQUARED
-ROTATION_SPEED = 1
 COLOR_SPEED = 2
 MOVING_SPEED = 1
 WINDOW_TITLE = "Cube"
@@ -16,7 +15,6 @@ WINDOW_TITLE = "Cube"
 # INITIALIZATION PART
 dx = WINDOW_SIDE_SIZE // 2
 dy = WINDOW_SIDE_SIZE // 2
-radian = math.radians(ROTATION_SPEED)
 cube_coordinates = []
 rainbow_red = 0
 rainbow_green = 0
@@ -138,10 +136,10 @@ while True:
 
     # ROTATING
     for index, _ in enumerate(cube_coordinates):
-        point = base_coordinates[index]
-        point = x_matrix_transformation(point, angle_x)
-        point = y_matrix_transformation(point, angle_y)
-        cube_coordinates[index] = point
+        cube_point = base_coordinates[index]
+        cube_point = x_matrix_transformation(cube_point, angle_x)
+        cube_point = y_matrix_transformation(cube_point, angle_y)
+        cube_coordinates[index] = cube_point
 
     # FUN COLOR
     rainbow = (
@@ -183,7 +181,7 @@ while True:
 
     sorted_data = sorted(pixel_set, key=lambda item: item[1])
 
-    for point in sorted_data:
-        screen.set_at(point[0], point[1])
+    for cube_point in sorted_data:
+        screen.set_at(cube_point[0], cube_point[1])
     pixel_set.clear()
     clock.tick(TICKRATE)
