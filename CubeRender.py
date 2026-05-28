@@ -9,8 +9,6 @@ rotation_speed=1
 color_speed=2
 moving_speed=1
 
-#HI GUYS
-
 #CONSTANTS
 dx=window_side_size//2
 dy=window_side_size//2
