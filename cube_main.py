@@ -21,12 +21,12 @@ DEPTH = 300
 
 
 triangles_vertices_indexes = [
-    [6, 2, 0], [6, 0, 4], # Передняя грань (+Z)
-    [3, 7, 5], [3, 5, 1], # Задняя грань (-Z)
-    [2, 3, 1], [2, 1, 0], # Правая грань (+X)
-    [7, 6, 4], [7, 4, 5], # Левая грань (-X)
-    [7, 3, 2], [7, 2, 6], # Верхняя грань (-Y)
-    [4, 0, 1], [4, 1, 5]  # Нижняя грань (+Y)
+    [6, 2, 0], [6, 0, 4],
+    [3, 7, 5], [3, 5, 1],
+    [2, 3, 1], [2, 1, 0],
+    [7, 6, 4], [7, 4, 5],
+    [7, 3, 2], [7, 2, 6],
+    [4, 0, 1], [4, 1, 5]
 ]
 last_pressed = ''
 light_coordinates = LIGHT_START_CORDS
@@ -290,23 +290,6 @@ while True:
                 z = w1 * zA + w2 * zB + w3 * zC
                 if w1 >= 0 and w2 >= 0 and w3>=0:
                     put_pixel(x, y, z, WHITE)
-
-                
-    # for point_x, point_y in (
-    #     (0, 1),
-    #     (0, 2),
-    #     (0, 4),
-    #     (1, 3),
-    #     (1, 5),
-    #     (2, 3),
-    #     (2, 6),
-    #     (3, 7),
-    #     (4, 6),
-    #     (4, 5),
-    #     (5, 7),
-    #     (6, 7),
-    # ):
-    #     draw_line(points[point_x], points[point_y], RED)
 
     light_color_brightness=max(min(1,light_coordinates[2]/100),0.07)
     light_color=(
