@@ -4,22 +4,31 @@ import pygame
 
 TICKRATE = 200
 WINDOW_SIDE = 1000
-CUBE_ROTATION_SPEED = 10
-COLOR_SPEED = 10
-CUBE_SPEED = 10
+CUBE_ROTATION_SPEED = 40
+COLOR_SPEED = 40
+CUBE_SPEED = 40
 WINDOW_TITLE = "Cube"
 LIGHT_AREA = 350
 LIGHT_START_CORDS = (500,500,0)
-LIGHT_SPEED = 10
+LIGHT_SPEED = 40
 LIGHT_RADIUS = 20
 YELLOW = (255,255,0)
 BLACK = (0,0,0)
 WHITE = (255,255,255)
+RED = (255,0,0)
 FOV = 300
 DEPTH = 300
 
+
+triangles_vertices_indexes = [
+    [6, 2, 0], [6, 0, 4], # Передняя грань (+Z)
+    [3, 7, 5], [3, 5, 1], # Задняя грань (-Z)
+    [2, 3, 1], [2, 1, 0], # Правая грань (+X)
+    [7, 6, 4], [7, 4, 5], # Левая грань (-X)
+    [7, 3, 2], [7, 2, 6], # Верхняя грань (-Y)
+    [4, 0, 1], [4, 1, 5]  # Нижняя грань (+Y)
+]
 last_pressed = ''
-faces_indexes = [[0, 1, 2], [1, 2, 3], [5, 6, 7], [4, 5, 6], [1, 4, 5], [0, 1, 4], [3, 6, 7], [2, 3, 6], [2, 4, 6], [0, 2, 4], [3, 5, 7], [1, 3, 5]]
 light_coordinates = LIGHT_START_CORDS
 coordinates_center = WINDOW_SIDE//2
 cube_offset_x = 0
@@ -86,26 +95,26 @@ def draw_full_circle(center, radius, color):
                     z_buffer[y*WINDOW_SIDE+x] = z+DEPTH
                     pixels[x][y] = color
 
-def put_pixel(x, y, z):
+def put_pixel(x, y, z, color):
         xl, yl, zl = light_coordinates
         if 0 <= x < WINDOW_SIDE and 0 <= y < WINDOW_SIDE:
             idx = y * WINDOW_SIDE + x
             if z_buffer[idx] < z+DEPTH:
                 z_buffer[idx] = z+DEPTH
-                
+
                 distance_to_light = math.sqrt((x - xl)**2 + (y - yl)**2 + (z - zl)**2)
                 brightness = max(min(1, 1 - distance_to_light / LIGHT_AREA), 0.08)
-                
                 if fun:
                     r = int(rainbow[0] * brightness)
                     g = int(rainbow[1] * brightness)
                     b = int(rainbow[2] * brightness)
-                    pixels[x][y] = (r, g, b)
                 else:
-                    c = int(255 * brightness)
-                    pixels[x][y] = (c, c, c)
+                    r = int(color[0] * brightness)
+                    g = int(color[1] * brightness)
+                    b = int(color[2] * brightness)
+                pixels[x][y] = (r,g,b)
 
-def draw_line(point1, point2):
+def draw_line(point1, point2, color):
     x1, y1, z1 = int(point1[0]), int(point1[1]), int(point1[2])
     x2, y2, z2 = int(point2[0]), int(point2[1]), int(point2[2])
 
@@ -121,7 +130,7 @@ def draw_line(point1, point2):
         err_1 = 2 * dy - dx
         err_2 = 2 * dz - dx
         for _ in range(dx + 1):
-            put_pixel(x1, y1, z1)
+            put_pixel(x1, y1, z1, color)
             if err_1 > 0:
                 y1 += sy
                 err_1 -= 2 * dx
@@ -136,7 +145,7 @@ def draw_line(point1, point2):
         err_1 = 2 * dx - dy
         err_2 = 2 * dz - dy
         for _ in range(dy + 1):
-            put_pixel(x1, y1, z1)
+            put_pixel(x1, y1, z1, color)
             if err_1 > 0:
                 x1 += sx
                 err_1 -= 2 * dy
@@ -151,7 +160,7 @@ def draw_line(point1, point2):
         err_1 = 2 * dy - dz
         err_2 = 2 * dx - dz
         for _ in range(dz + 1):
-            put_pixel(x1, y1, z1)
+            put_pixel(x1, y1, z1, color)
             if err_1 > 0:
                 y1 += sy
                 err_1 -= 2 * dz
@@ -262,29 +271,50 @@ while True:
                 cube_point_z,
             )
         )
-    for point_x, point_y in (
-        (0, 1),
-        (0, 2),
-        (0, 4),
-        (1, 3),
-        (1, 5),
-        (2, 3),
-        (2, 6),
-        (3, 7),
-        (4, 6),
-        (4, 5),
-        (5, 7),
-        (6, 7),
-        (0, 6),
-        (2, 4),
-    ):
-        draw_line(points[point_x], points[point_y])
-    light_brightness=max(min(1,light_coordinates[2]/100),0.07)
+    for triangle in triangles_vertices_indexes:
+        xA, yA, zA = points[triangle[0]]
+        xB, yB, zB = points[triangle[1]]
+        xC, yC, zC = points[triangle[2]]
+        min_x = int(min(xA,xB,xC))
+        max_x = int(max(xA,xB,xC))+1
+        min_y = int(min(yA,yB,yC))
+        max_y = int(max(yA,yB,yC))+1
+        determinant = (yB - yC) * (xA - xC) + (xC - xB) * (yA - yC)
+        if int(determinant) <= 0:
+            continue
+        for x in range(min_x+1, max_x+1):
+            for y in range(min_y+1, max_y+1):
+                w1 = ((yB - yC) * (x - xC) + (xC - xB) * (y - yC))/determinant
+                w2 = ((yC - yA) * (x - xC) + (xA - xC) * (y - yC))/determinant
+                w3 = 1 - w1 - w2
+                z = w1 * zA + w2 * zB + w3 * zC
+                if w1 >= 0 and w2 >= 0 and w3>=0:
+                    put_pixel(x, y, z, WHITE)
+
+                
+    # for point_x, point_y in (
+    #     (0, 1),
+    #     (0, 2),
+    #     (0, 4),
+    #     (1, 3),
+    #     (1, 5),
+    #     (2, 3),
+    #     (2, 6),
+    #     (3, 7),
+    #     (4, 6),
+    #     (4, 5),
+    #     (5, 7),
+    #     (6, 7),
+    # ):
+    #     draw_line(points[point_x], points[point_y], RED)
+
+    light_color_brightness=max(min(1,light_coordinates[2]/100),0.07)
     light_color=(
-        YELLOW[0]*light_brightness,
-        YELLOW[1]*light_brightness,
-        YELLOW[2]*light_brightness
+        YELLOW[0]*light_color_brightness,
+        YELLOW[1]*light_color_brightness,
+        YELLOW[2]*light_color_brightness
     )
+
     draw_full_circle(light_coordinates,LIGHT_RADIUS,light_color)
 
     del pixels
