@@ -5,21 +5,26 @@ import pygame
 TICKRATE = 200
 WINDOW_SIDE = 1000
 CUBE_ROTATION_SPEED = 10
-COLOR_SPEED = 2
+COLOR_SPEED = 10
 CUBE_SPEED = 10
 WINDOW_TITLE = "Cube"
-LIGHT_AREA=250
-LIGHT_START_CORDS=(500,500,0)
-LIGHT_SPEED=10
-LIGHT_RADIUS=30
-YELLOW=(255,255,0)
-BLACK=(0,0,0)
-WHITE=(255,255,255)
+LIGHT_AREA = 350
+LIGHT_START_CORDS = (500,500,0)
+LIGHT_SPEED = 10
+LIGHT_RADIUS = 20
+YELLOW = (255,255,0)
+BLACK = (0,0,0)
+WHITE = (255,255,255)
+FOV = 300
+DEPTH = 300
 
-light_coordinates=LIGHT_START_CORDS
-coordinates_center=WINDOW_SIDE//2
+last_pressed = ''
+faces_indexes = [[0, 1, 2], [1, 2, 3], [5, 6, 7], [4, 5, 6], [1, 4, 5], [0, 1, 4], [3, 6, 7], [2, 3, 6], [2, 4, 6], [0, 2, 4], [3, 5, 7], [1, 3, 5]]
+light_coordinates = LIGHT_START_CORDS
+coordinates_center = WINDOW_SIDE//2
 cube_offset_x = 0
 cube_offset_y = 0
+cube_offset_z = 0
 cube_coordinates = []
 rainbow_red = 0
 rainbow_green = 0
@@ -77,16 +82,16 @@ def draw_full_circle(center, radius, color):
         dx = int(math.sqrt(radius**2 - dy**2))
         for x in range(x_c - dx, x_c + dx + 1):
             if 0 <= x < WINDOW_SIDE and 0 <= y < WINDOW_SIDE:
-                if z_buffer[y*WINDOW_SIDE+x] < z:
-                    z_buffer[y*WINDOW_SIDE+x] = z
+                if z_buffer[y*WINDOW_SIDE+x] < z+DEPTH:
+                    z_buffer[y*WINDOW_SIDE+x] = z+DEPTH
                     pixels[x][y] = color
 
 def put_pixel(x, y, z):
         xl, yl, zl = light_coordinates
         if 0 <= x < WINDOW_SIDE and 0 <= y < WINDOW_SIDE:
             idx = y * WINDOW_SIDE + x
-            if z_buffer[idx] < z:
-                z_buffer[idx] = z
+            if z_buffer[idx] < z+DEPTH:
+                z_buffer[idx] = z+DEPTH
                 
                 distance_to_light = math.sqrt((x - xl)**2 + (y - yl)**2 + (z - zl)**2)
                 brightness = max(min(1, 1 - distance_to_light / LIGHT_AREA), 0.08)
@@ -157,7 +162,7 @@ def draw_line(point1, point2):
             err_2 += 2 * dx
             z1 += sz
 
-print("Rotate cube on WASDQE. Move on ARROWS. Move light on TFGHRY. OLEG for fun")
+print("Rotate cube on WASDQE. Move on ARROWS and OP. Move light on TFGHRY. OLEG for fun")
 
 clock = pygame.time.Clock()
 
@@ -166,6 +171,10 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            last_pressed += pygame.key.name(event.key)
+            if len(last_pressed)>4:
+                last_pressed = last_pressed[1:5]
 
     screen.fill((0, 0, 0))
     pixels = pygame.PixelArray(screen)
@@ -181,6 +190,10 @@ while True:
         cube_offset_y += CUBE_SPEED
     if keys[pygame.K_RIGHT]:
         cube_offset_x += CUBE_SPEED
+    if keys[pygame.K_o]:
+        cube_offset_z -= CUBE_SPEED
+    if keys[pygame.K_p]:
+        cube_offset_z += CUBE_SPEED
     if keys[pygame.K_t]:
         light_coordinates = (light_coordinates[0],
                             light_coordinates[1]-LIGHT_SPEED,
@@ -205,12 +218,6 @@ while True:
         light_coordinates = (light_coordinates[0],
                             light_coordinates[1],
                             light_coordinates[2]+LIGHT_SPEED)
- 
-    if keys[pygame.K_o]:
-        if keys[pygame.K_l]:
-            if keys[pygame.K_e]:
-                if keys[pygame.K_g]:
-                    fun = True
 
     for index, _ in enumerate(cube_coordinates):
         point = cube_coordinates[index]
@@ -231,6 +238,9 @@ while True:
             point = y_axis_rotation(point,rotation_speed_rad)
         cube_coordinates[index] = point
 
+    if last_pressed == 'oleg':
+        fun = True
+
     rainbow = (
         int(127.5 * math.sin(rainbow_red / 127.5) + 127.5),
         int(127.5 * math.sin(rainbow_green / 127.5 - 42.5) + 127.5),
@@ -242,11 +252,14 @@ while True:
 
     points = list()
     for cube_point_coordinate in cube_coordinates:
+        cube_point_x = cube_point_coordinate[0] - coordinates_center  + cube_offset_x
+        cube_point_y = cube_point_coordinate[1] - coordinates_center + cube_offset_y
+        cube_point_z = cube_point_coordinate[2] + cube_offset_z
         points.append(
             (
-                cube_point_coordinate[0] + cube_offset_x,
-                cube_point_coordinate[1] + cube_offset_y,
-                cube_point_coordinate[2],
+                cube_point_x * FOV / (DEPTH - cube_point_z) + coordinates_center,
+                cube_point_y * FOV / (DEPTH - cube_point_z) + coordinates_center,
+                cube_point_z,
             )
         )
     for point_x, point_y in (
@@ -266,7 +279,7 @@ while True:
         (2, 4),
     ):
         draw_line(points[point_x], points[point_y])
-    light_brightness=max(min(1,light_coordinates[2]/200),0.07)
+    light_brightness=max(min(1,light_coordinates[2]/100),0.07)
     light_color=(
         YELLOW[0]*light_brightness,
         YELLOW[1]*light_brightness,
