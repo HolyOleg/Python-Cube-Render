@@ -4,14 +4,14 @@ import pygame
 
 TICKRATE = 200
 WINDOW_SIDE = 1000
-CUBE_ROTATION_SPEED = 1
+CUBE_ROTATION_SPEED = 10
 COLOR_SPEED = 2
-CUBE_SPEED = 1
+CUBE_SPEED = 10
 WINDOW_TITLE = "Cube"
 LIGHT_AREA=250
 LIGHT_START_CORDS=(500,500,0)
-LIGHT_SPEED=1
-LIGHT_START_RADIUS=30
+LIGHT_SPEED=10
+LIGHT_RADIUS=30
 YELLOW=(255,255,0)
 BLACK=(0,0,0)
 WHITE=(255,255,255)
@@ -25,7 +25,7 @@ rainbow_red = 0
 rainbow_green = 0
 rainbow_blue = 0
 fun = False
-pixels_to_print = set()
+points_to_print = set()
 rotation_speed_rad = math.radians(CUBE_ROTATION_SPEED)
 
 pygame.init()
@@ -76,33 +76,88 @@ def draw_full_circle(center, radius, color):
         dy = y - y_c
         dx = int(math.sqrt(radius**2 - dy**2))
         for x in range(x_c - dx, x_c + dx + 1):
-            pixels_to_print.add(((x, y, z), color))
+            if 0 <= x < WINDOW_SIDE and 0 <= y < WINDOW_SIDE:
+                if z_buffer[y*WINDOW_SIDE+x] < z:
+                    z_buffer[y*WINDOW_SIDE+x] = z
+                    pixels[x][y] = color
+
+def put_pixel(x, y, z):
+        xl, yl, zl = light_coordinates
+        if 0 <= x < WINDOW_SIDE and 0 <= y < WINDOW_SIDE:
+            idx = y * WINDOW_SIDE + x
+            if z_buffer[idx] < z:
+                z_buffer[idx] = z
+                
+                distance_to_light = math.sqrt((x - xl)**2 + (y - yl)**2 + (z - zl)**2)
+                brightness = max(min(1, 1 - distance_to_light / LIGHT_AREA), 0.08)
+                
+                if fun:
+                    r = int(rainbow[0] * brightness)
+                    g = int(rainbow[1] * brightness)
+                    b = int(rainbow[2] * brightness)
+                    pixels[x][y] = (r, g, b)
+                else:
+                    c = int(255 * brightness)
+                    pixels[x][y] = (c, c, c)
 
 def draw_line(point1, point2):
-    xl, yl, zl = light_coordinates
-    x1, y1, z1 = point1
-    x2, y2, z2 = point2
-    angle_xy = math.atan2(x2 - x1, y2 - y1)
-    angle_yz = math.atan2(y2 - y1, z2 - z1)
-    length = int(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
-    if length == 0:
-        return
-    for d in range(1, length + 1):
-        x = x1 + d * math.sin(angle_xy)
-        y = y1 + d * math.cos(angle_xy)
-        z = z1 + d * math.cos(angle_yz)
-        distance_to_light=math.sqrt((x-xl)**2+(y-yl)**2+(z-zl)**2)
-        brightness = max(min(1,1-distance_to_light/LIGHT_AREA),0.08)
-        if fun:
-            r = int(rainbow[0] * brightness)
-            g = int(rainbow[1] * brightness)
-            b = int(rainbow[2] * brightness)
-            pixels_to_print.add(((int(x), int(y), int(z)), (r, g, b)))
-        else:
-            c = int(255 * brightness)
-            pixels_to_print.add(((int(x), int(y), int(z)), (c, c, c)))
+    x1, y1, z1 = int(point1[0]), int(point1[1]), int(point1[2])
+    x2, y2, z2 = int(point2[0]), int(point2[1]), int(point2[2])
 
-print("Rotate on WASD. Move on ARROWS. OLEG for fun")
+    dx = abs(x2 - x1)
+    dy = abs(y2 - y1)
+    dz = abs(z2 - z1)
+
+    sx = 1 if x1 < x2 else -1
+    sy = 1 if y1 < y2 else -1
+    sz = 1 if z1 < z2 else -1
+
+    if dx >= dy and dx >= dz:
+        err_1 = 2 * dy - dx
+        err_2 = 2 * dz - dx
+        for _ in range(dx + 1):
+            put_pixel(x1, y1, z1)
+            if err_1 > 0:
+                y1 += sy
+                err_1 -= 2 * dx
+            if err_2 > 0:
+                z1 += sz
+                err_2 -= 2 * dx
+            err_1 += 2 * dy
+            err_2 += 2 * dz
+            x1 += sx
+
+    elif dy >= dx and dy >= dz:
+        err_1 = 2 * dx - dy
+        err_2 = 2 * dz - dy
+        for _ in range(dy + 1):
+            put_pixel(x1, y1, z1)
+            if err_1 > 0:
+                x1 += sx
+                err_1 -= 2 * dy
+            if err_2 > 0:
+                z1 += sz
+                err_2 -= 2 * dy
+            err_1 += 2 * dx
+            err_2 += 2 * dz
+            y1 += sy
+
+    else:
+        err_1 = 2 * dy - dz
+        err_2 = 2 * dx - dz
+        for _ in range(dz + 1):
+            put_pixel(x1, y1, z1)
+            if err_1 > 0:
+                y1 += sy
+                err_1 -= 2 * dz
+            if err_2 > 0:
+                x1 += sx
+                err_2 -= 2 * dz
+            err_1 += 2 * dy
+            err_2 += 2 * dx
+            z1 += sz
+
+print("Rotate cube on WASDQE. Move on ARROWS. Move light on TFGHRY. OLEG for fun")
 
 clock = pygame.time.Clock()
 
@@ -112,8 +167,9 @@ while True:
             pygame.quit()
             sys.exit()
 
-    pygame.display.flip()
     screen.fill((0, 0, 0))
+    pixels = pygame.PixelArray(screen)
+    z_buffer=[float("-Infinity") for _ in range(WINDOW_SIDE*WINDOW_SIDE)]
 
     keys = pygame.key.get_pressed()
 
@@ -210,14 +266,14 @@ while True:
         (2, 4),
     ):
         draw_line(points[point_x], points[point_y])
+    light_brightness=max(min(1,light_coordinates[2]/200),0.07)
+    light_color=(
+        YELLOW[0]*light_brightness,
+        YELLOW[1]*light_brightness,
+        YELLOW[2]*light_brightness
+    )
+    draw_full_circle(light_coordinates,LIGHT_RADIUS,light_color)
 
-    light_radius=LIGHT_START_RADIUS+light_coordinates[2]//10
-    draw_full_circle(light_coordinates,light_radius,YELLOW)
-
-    sorted_data = sorted(pixels_to_print, key=lambda item: item[0][2])
-    for point in sorted_data:
-        print_x=point[0][0]
-        print_y=point[0][1]
-        screen.set_at((print_x,print_y), point[1])
-    pixels_to_print.clear()
+    del pixels
+    pygame.display.flip()
     clock.tick(TICKRATE)
